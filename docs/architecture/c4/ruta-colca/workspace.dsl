@@ -60,7 +60,9 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Grupo AG-08" {
             deploymentNode "Proveedor cloud" "Aloja los servicios centrales de RutaColca." "Proveedor cloud" {
                 loadBalancer = infrastructureNode "Balanceador de carga" "Distribuye las solicitudes hacia las instancias de la API." "Balanceo HTTPS"
 
-                apiVmOne = deploymentNode "VM Ubuntu 1" "Primera instancia para atender solicitudes de la API." "Ubuntu + Docker" {
+                apiVmOne = deploymentNode "VM UbuBash
+
+ntu 1" "Primera instancia para atender solicitudes de la API." "Ubuntu + Docker" {
                     containerInstance ruta.api
                 }
 
