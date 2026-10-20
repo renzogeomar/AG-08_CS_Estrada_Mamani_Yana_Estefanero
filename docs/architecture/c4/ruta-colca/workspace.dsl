@@ -1,4 +1,4 @@
-workspace "RutaColca" "Modelo C4 de RutaColca - Parte A" {
+workspace "RutaColca" "Modelo C4 de RutaColca - Grupo AG-08" {
 
     !identifiers hierarchical
 
@@ -31,23 +31,51 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Parte A" {
         // ==========================================
         // PASO 2 y 3: Relaciones (Unidireccionales y con protocolo)
         // ==========================================
-        // Personas -> Contenedores de RutaColca (Structurizr infiere el nivel de Contexto automáticamente)
         turista -> ruta.web "Busca tours, registra boleto y paga reservas en" "HTTPS"
         operador -> ruta.portal "Publica tours con cupos y registra reservas en" "HTTPS"
         admin -> ruta.portal "Aprueba agencias y consulta reportes de ventas en" "HTTPS"
 
-        // Comunicación interna entre contenedores
         ruta.web -> ruta.api "Solicita catálogo, registro de reservas y pagos a" "JSON/HTTPS"
         ruta.portal -> ruta.api "Gestiona tours, cupos, agencias y reportes mediante" "JSON/HTTPS"
         ruta.api -> ruta.bd "Lee y escribe registros de tours, reservas y ventas en" "JDBC"
 
-        // Contenedor API -> Sistemas externos
         ruta.api -> autocolca "Valida el número de boleto turístico en" "HTTPS"
         ruta.api -> pasarela "Procesa el cobro de la reserva en" "HTTPS"
         ruta.api -> whatsapp "Envía el itinerario y la lista del grupo por" "HTTPS"
 
-        // Notificación final hacia el guía
         whatsapp -> guia "Entrega mensajes con el itinerario y lista de pasajeros a" "HTTPS"
+
+        // ==========================================
+        // PASO 7: Entorno de Despliegue (Aporte de Rodrigo adaptado)
+        // ==========================================
+        deploymentEnvironment "Produccion" {
+            deploymentNode "Dispositivo móvil del turista" "Dispositivo desde el que el turista consulta y reserva." "Android / iOS" {
+                containerInstance ruta.web
+            }
+
+            deploymentNode "Tablet o PC de la agencia" "Dispositivo de operación de la agencia." "Navegador web" {
+                containerInstance ruta.portal
+            }
+
+            deploymentNode "Proveedor cloud" "Aloja los servicios centrales de RutaColca." "Proveedor cloud" {
+                loadBalancer = infrastructureNode "Balanceador de carga" "Distribuye las solicitudes hacia las instancias de la API." "Balanceo HTTPS"
+
+                apiVmOne = deploymentNode "VM Ubuntu 1" "Primera instancia para atender solicitudes de la API." "Ubuntu + Docker" {
+                    containerInstance ruta.api
+                }
+
+                apiVmTwo = deploymentNode "VM Ubuntu 2" "Segunda instancia para atender picos de demanda en temporada alta." "Ubuntu + Docker" {
+                    containerInstance ruta.api
+                }
+
+                deploymentNode "PostgreSQL 16 gestionado" "Servicio de base de datos administrado por el proveedor cloud." "PostgreSQL 16" {
+                    containerInstance ruta.bd
+                }
+            }
+        }
+
+        loadBalancer -> apiVmOne "Distribuye solicitudes HTTPS hacia" "HTTPS"
+        loadBalancer -> apiVmTwo "Distribuye solicitudes HTTPS hacia" "HTTPS"
     }
 
     views {
@@ -63,8 +91,7 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Parte A" {
             autolayout tb
         }
 
-        // PASO 4 - Vista 3: Diagrama Dinámico (HU-02 y HU-03)
-        // Decisión de diseño: Se valida el boleto con AUTOCOLCA ANTES de cobrar para evitar cargos y reembolsos si el boleto es inválido.
+        // PASO 4: Vista Dinámica
         dynamic ruta "Dinamico" "Reservar y pagar un tour (HU-02 y HU-03)" {
             turista -> ruta.web "1. Selecciona fecha de salida, ingresa número de boleto turístico y confirma el pago"
             ruta.web -> ruta.api "2. Envía solicitud de reserva y pago (POST /reservas)"
@@ -73,6 +100,12 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Parte A" {
             ruta.api -> ruta.bd "5. Registra la reserva confirmada y descuenta el cupo disponible"
             ruta.api -> whatsapp "6. Programa el envío del itinerario y lista actualizada del grupo"
             autolayout tb
+        }
+
+        // PASO 7: Vista de Despliegue
+        deployment ruta "Produccion" "Despliegue de RutaColca en producción" {
+            include *
+            autolayout lr
         }
 
         styles {
