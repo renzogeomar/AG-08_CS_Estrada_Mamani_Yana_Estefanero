@@ -1,24 +1,79 @@
-workspace "RutaColca" "Modelo C4 de RutaColca - Grupo N.º" {
+workspace "RutaColca" "Modelo C4 de RutaColca - Grupo AG-08" {
 
     !identifiers hierarchical
 
     model {
-        // PASO 2 - Personas: un rol humano por elemento
-        turista = person "Turista" "TODO: describa al usuario en una oración."
-        // TODO: operador de agencia, guia de turismo, administrador
+        turista = person "Turista" "Busca tours, reserva una salida y paga en línea."
+        operador = person "Operador de agencia" "Publica tours y administra las reservas de su agencia."
+        guia = person "Guía de turismo" "Recibe por WhatsApp el itinerario y la lista del grupo."
+        administrador = person "Administrador" "Aprueba agencias y consulta reportes de ventas."
 
         // PASO 2 - El sistema en estudio (una sola caja en el contexto)
-        ruta = softwareSystem "RutaColca" "TODO: qué ofrece al negocio." {
-            // PASO 3 - Contenedores: aplicaciones y almacenes de datos
-            // nombre = container "Nombre" "Responsabilidad" "Tecnologia"
-            // TODO: web del turista, portal de agencias, API, base de datos
+        ruta = softwareSystem "RutaColca" "Plataforma del consorcio para publicar tours, gestionar reservas y coordinar su operación." {
+            webTurista = container "Web del turista" "Permite buscar tours, seleccionar salidas, reservar y pagar." "React (SPA)"
+            portalAgencias = container "Portal de agencias" "Permite publicar tours y gestionar salidas, cupos y reservas." "React (PWA)"
+            api = container "API" "Aplica las reglas del negocio y coordina reservas e integraciones externas." "Java 21 / Spring Boot"
+            baseDatos = container "Base de datos" "Almacena tours, salidas, cupos y reservas; no guarda datos de tarjetas." "PostgreSQL 16"
         }
 
-        // PASO 2 - Sistemas externos (etiqueta "Externo")
-        // TODO: pasarela de pagos, WhatsApp Business, sistema de AUTOCOLCA
+        pasarela = softwareSystem "Pasarela de pagos" "Procesa pagos en línea sin compartir los datos de las tarjetas con RutaColca." {
+            tags "Externo"
+        }
+        whatsapp = softwareSystem "WhatsApp Business" "Canal externo para entregar itinerarios y listas a los guías." {
+            tags "Externo"
+        }
+        autocolca = softwareSystem "Sistema de AUTOCOLCA" "Sistema externo que valida boletos turísticos." {
+            tags "Externo"
+        }
 
-        // Relaciones: origen -> destino "Verbo + preposición" "Protocolo"
-        // TODO: complete las relaciones de los pasos 2 y 3
+        turista -> ruta "Busca tours, reserva salidas y paga en"
+        operador -> ruta "Publica tours y administra reservas en"
+        guia -> ruta "Recibe itinerarios y listas coordinados por"
+        administrador -> ruta "Aprueba agencias y consulta reportes en"
+        ruta -> pasarela "Procesa los cobros de las reservas mediante"
+        ruta -> whatsapp "Envía itinerarios y listas de grupos mediante"
+        ruta -> autocolca "Valida boletos turísticos con"
+
+        turista -> ruta.webTurista "Busca tours y reserva salidas" "HTTPS"
+        ruta.webTurista -> ruta.api "Consulta disponibilidad y solicita reservas" "JSON/HTTPS"
+        operador -> ruta.portalAgencias "Publica tours y gestiona reservas" "HTTPS"
+        administrador -> ruta.portalAgencias "Aprueba agencias y consulta reportes" "HTTPS"
+        ruta.portalAgencias -> ruta.api "Gestiona tours, cupos y reservas" "JSON/HTTPS"
+        ruta.api -> ruta.baseDatos "Lee y registra tours, salidas y reservas" "JDBC"
+        ruta.api -> pasarela "Cobra reservas confirmadas" "HTTPS"
+        ruta.api -> autocolca "Valida el boleto turístico" "HTTPS"
+        ruta.api -> whatsapp "Solicita el envío de itinerarios y listas" "HTTPS"
+        whatsapp -> guia "Entrega itinerarios y listas de grupos" "Canal de WhatsApp"
+        ruta.api -> ruta.webTurista "Devuelve el resultado de la reserva" "JSON/HTTPS"
+
+        deploymentEnvironment "Produccion" {
+            deploymentNode "Dispositivo móvil del turista" "Dispositivo desde el que el turista consulta y reserva." "Android / iOS" {
+                containerInstance ruta.webTurista
+            }
+
+            deploymentNode "Tablet o PC de la agencia" "Dispositivo de operación de la agencia." "Navegador web" {
+                containerInstance ruta.portalAgencias
+            }
+
+            deploymentNode "Proveedor cloud" "Aloja los servicios centrales de RutaColca." "Proveedor cloud" {
+                loadBalancer = infrastructureNode "Balanceador de carga" "Distribuye las solicitudes hacia las instancias de la API." "Balanceo HTTPS"
+
+                apiVmOne = deploymentNode "VM Ubuntu 1" "Primera instancia para atender solicitudes de la API." "Ubuntu + Docker" {
+                    containerInstance ruta.api
+                }
+
+                apiVmTwo = deploymentNode "VM Ubuntu 2" "Segunda instancia para atender picos de demanda en temporada alta." "Ubuntu + Docker" {
+                    containerInstance ruta.api
+                }
+
+                deploymentNode "PostgreSQL 16 gestionado" "Servicio de base de datos administrado por el proveedor cloud." "PostgreSQL 16" {
+                    containerInstance ruta.baseDatos
+                }
+            }
+        }
+
+        loadBalancer -> apiVmOne "Distribuye solicitudes HTTPS hacia"
+        loadBalancer -> apiVmTwo "Distribuye solicitudes HTTPS hacia"
     }
 
     views {
@@ -32,7 +87,21 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Grupo N.º" {
             autolayout tb
         }
 
-        // PASO 4 - dynamic ruta "Dinamico" "Reservar y pagar un tour" { ... }
+        dynamic ruta "Dinamico" "Reservar y pagar un tour" {
+            turista -> ruta.webTurista "Selecciona una salida e ingresa su boleto"
+            ruta.webTurista -> ruta.api "Solicita validar el boleto y reservar la salida"
+            ruta.api -> autocolca "Valida el boleto turístico"
+            ruta.api -> pasarela "Cobra la reserva si el boleto es válido y hay cupo"
+            ruta.api -> ruta.baseDatos "Registra la reserva confirmada"
+            ruta.api -> ruta.webTurista "Devuelve la confirmación de la reserva"
+            ruta.api -> whatsapp "Solicita el envío del itinerario y la lista al guía"
+            autolayout lr
+        }
+
+        deployment ruta "Produccion" "Despliegue de RutaColca en producción" {
+            include *
+            autolayout lr
+        }
 
         styles {
             element "Person" {
