@@ -1,0 +1,483 @@
+{
+  "configuration" : { },
+  "description" : "Modelo C4 de RutaColca - Parte A",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2026-10-20T18:06:20Z",
+  "model" : {
+    "people" : [ {
+      "description" : "Visitante que busca tours al Colca, reserva salidas y paga en línea.",
+      "id" : "1",
+      "name" : "Turista",
+      "properties" : {
+        "structurizr.dsl.identifier" : "turista"
+      },
+      "relationships" : [ {
+        "description" : "Busca tours, registra boleto y paga reservas en",
+        "destinationId" : "6",
+        "id" : "13",
+        "sourceId" : "1",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Busca tours, registra boleto y paga reservas en",
+        "destinationId" : "5",
+        "id" : "14",
+        "linkedRelationshipId" : "13",
+        "sourceId" : "1",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Personal de agencia en Arequipa o Chivay que publica tours y gestiona reservas.",
+      "id" : "2",
+      "name" : "Operador de agencia",
+      "properties" : {
+        "structurizr.dsl.identifier" : "operador"
+      },
+      "relationships" : [ {
+        "description" : "Publica tours con cupos y registra reservas en",
+        "destinationId" : "7",
+        "id" : "15",
+        "sourceId" : "2",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Publica tours con cupos y registra reservas en",
+        "destinationId" : "5",
+        "id" : "16",
+        "linkedRelationshipId" : "15",
+        "sourceId" : "2",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Encargado del consorcio que aprueba agencias registradas y revisa reportes de ventas.",
+      "id" : "3",
+      "name" : "Administrador",
+      "properties" : {
+        "structurizr.dsl.identifier" : "admin"
+      },
+      "relationships" : [ {
+        "description" : "Aprueba agencias y consulta reportes de ventas en",
+        "destinationId" : "7",
+        "id" : "17",
+        "sourceId" : "3",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Aprueba agencias y consulta reportes de ventas en",
+        "destinationId" : "5",
+        "id" : "18",
+        "linkedRelationshipId" : "17",
+        "sourceId" : "3",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Guía oficial que recibe por WhatsApp el itinerario y la lista del grupo asignado.",
+      "id" : "4",
+      "name" : "Guía de turismo",
+      "properties" : {
+        "structurizr.dsl.identifier" : "guia"
+      },
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "containers" : [ {
+        "description" : "Permite buscar tours, registrar el boleto turístico, reservar salidas y pagar en línea.",
+        "documentation" : { },
+        "id" : "6",
+        "name" : "Web del turista",
+        "properties" : {
+          "structurizr.dsl.identifier" : "ruta.web"
+        },
+        "relationships" : [ {
+          "description" : "Solicita catálogo, registro de reservas y pagos a",
+          "destinationId" : "8",
+          "id" : "19",
+          "sourceId" : "6",
+          "tags" : "Relationship",
+          "technology" : "JSON/HTTPS"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "React (SPA)"
+      }, {
+        "description" : "Permite publicar tours con fechas y cupos, gestionar reservas, aprobar agencias y ver reportes.",
+        "documentation" : { },
+        "id" : "7",
+        "name" : "Portal de agencias",
+        "properties" : {
+          "structurizr.dsl.identifier" : "ruta.portal"
+        },
+        "relationships" : [ {
+          "description" : "Gestiona tours, cupos, agencias y reportes mediante",
+          "destinationId" : "8",
+          "id" : "20",
+          "sourceId" : "7",
+          "tags" : "Relationship",
+          "technology" : "JSON/HTTPS"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "React (PWA)"
+      }, {
+        "description" : "Expone la lógica de negocio de tours, reservas, validación de boletos, pagos y notificaciones.",
+        "documentation" : { },
+        "id" : "8",
+        "name" : "API",
+        "properties" : {
+          "structurizr.dsl.identifier" : "ruta.api"
+        },
+        "relationships" : [ {
+          "description" : "Lee y escribe registros de tours, reservas y ventas en",
+          "destinationId" : "9",
+          "id" : "21",
+          "sourceId" : "8",
+          "tags" : "Relationship",
+          "technology" : "JDBC"
+        }, {
+          "description" : "Valida el número de boleto turístico en",
+          "destinationId" : "12",
+          "id" : "22",
+          "sourceId" : "8",
+          "tags" : "Relationship",
+          "technology" : "HTTPS"
+        }, {
+          "description" : "Procesa el cobro de la reserva en",
+          "destinationId" : "10",
+          "id" : "24",
+          "sourceId" : "8",
+          "tags" : "Relationship",
+          "technology" : "HTTPS"
+        }, {
+          "description" : "Envía el itinerario y la lista del grupo por",
+          "destinationId" : "11",
+          "id" : "26",
+          "sourceId" : "8",
+          "tags" : "Relationship",
+          "technology" : "HTTPS"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Java 21, Spring Boot"
+      }, {
+        "description" : "Almacena datos de agencias, tours, fechas de salida, cupos, reservas y registros de ventas.",
+        "documentation" : { },
+        "id" : "9",
+        "name" : "Base de datos",
+        "properties" : {
+          "structurizr.dsl.identifier" : "ruta.bd"
+        },
+        "tags" : "Element,Container",
+        "technology" : "PostgreSQL 16"
+      } ],
+      "description" : "Plataforma para publicar, reservar y pagar tours al valle del Colca con validación de boletos.",
+      "documentation" : { },
+      "id" : "5",
+      "name" : "RutaColca",
+      "properties" : {
+        "structurizr.dsl.identifier" : "ruta"
+      },
+      "relationships" : [ {
+        "description" : "Valida el número de boleto turístico en",
+        "destinationId" : "12",
+        "id" : "23",
+        "linkedRelationshipId" : "22",
+        "sourceId" : "5",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Procesa el cobro de la reserva en",
+        "destinationId" : "10",
+        "id" : "25",
+        "linkedRelationshipId" : "24",
+        "sourceId" : "5",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Envía el itinerario y la lista del grupo por",
+        "destinationId" : "11",
+        "id" : "27",
+        "linkedRelationshipId" : "26",
+        "sourceId" : "5",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Procesa cobros en línea con tarjeta de crédito/débito y billetera móvil.",
+      "documentation" : { },
+      "id" : "10",
+      "name" : "Pasarela de pagos",
+      "properties" : {
+        "structurizr.dsl.identifier" : "pasarela"
+      },
+      "tags" : "Element,Software System,Externo"
+    }, {
+      "description" : "Servicio de mensajería para enviar el itinerario y lista de pasajeros a los guías.",
+      "documentation" : { },
+      "id" : "11",
+      "name" : "WhatsApp Business",
+      "properties" : {
+        "structurizr.dsl.identifier" : "whatsapp"
+      },
+      "relationships" : [ {
+        "description" : "Entrega mensajes con el itinerario y lista de pasajeros a",
+        "destinationId" : "4",
+        "id" : "28",
+        "sourceId" : "11",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Software System,Externo"
+    }, {
+      "description" : "Emite el boleto turístico del Colca y expone un servicio para validar su vigencia.",
+      "documentation" : { },
+      "id" : "12",
+      "name" : "Sistema de AUTOCOLCA",
+      "properties" : {
+        "structurizr.dsl.identifier" : "autocolca"
+      },
+      "tags" : "Element,Software System,Externo"
+    } ]
+  },
+  "name" : "RutaColca",
+  "properties" : {
+    "structurizr.inspection.error" : "4",
+    "structurizr.dsl" : "d29ya3NwYWNlICJSdXRhQ29sY2EiICJNb2RlbG8gQzQgZGUgUnV0YUNvbGNhIC0gUGFydGUgQSIgewoKICAgICFpZGVudGlmaWVycyBoaWVyYXJjaGljYWwKCiAgICBtb2RlbCB7CiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgICAgLy8gUEFTTyAyOiBQZXJzb25hcyAoUm9sZXMgaHVtYW5vcykKICAgICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgICB0dXJpc3RhID0gcGVyc29uICJUdXJpc3RhIiAiVmlzaXRhbnRlIHF1ZSBidXNjYSB0b3VycyBhbCBDb2xjYSwgcmVzZXJ2YSBzYWxpZGFzIHkgcGFnYSBlbiBsw61uZWEuIgogICAgICAgIG9wZXJhZG9yID0gcGVyc29uICJPcGVyYWRvciBkZSBhZ2VuY2lhIiAiUGVyc29uYWwgZGUgYWdlbmNpYSBlbiBBcmVxdWlwYSBvIENoaXZheSBxdWUgcHVibGljYSB0b3VycyB5IGdlc3Rpb25hIHJlc2VydmFzLiIKICAgICAgICBhZG1pbiA9IHBlcnNvbiAiQWRtaW5pc3RyYWRvciIgIkVuY2FyZ2FkbyBkZWwgY29uc29yY2lvIHF1ZSBhcHJ1ZWJhIGFnZW5jaWFzIHJlZ2lzdHJhZGFzIHkgcmV2aXNhIHJlcG9ydGVzIGRlIHZlbnRhcy4iCiAgICAgICAgZ3VpYSA9IHBlcnNvbiAiR3XDrWEgZGUgdHVyaXNtbyIgIkd1w61hIG9maWNpYWwgcXVlIHJlY2liZSBwb3IgV2hhdHNBcHAgZWwgaXRpbmVyYXJpbyB5IGxhIGxpc3RhIGRlbCBncnVwbyBhc2lnbmFkby4iCgogICAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICAgIC8vIFBBU08gMiB5IDM6IFNpc3RlbWEgZW4gZXN0dWRpbyB5IENvbnRlbmVkb3JlcyAoQURSLTAwMSkKICAgICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgICBydXRhID0gc29mdHdhcmVTeXN0ZW0gIlJ1dGFDb2xjYSIgIlBsYXRhZm9ybWEgcGFyYSBwdWJsaWNhciwgcmVzZXJ2YXIgeSBwYWdhciB0b3VycyBhbCB2YWxsZSBkZWwgQ29sY2EgY29uIHZhbGlkYWNpw7NuIGRlIGJvbGV0b3MuIiB7CiAgICAgICAgICAgIHdlYiA9IGNvbnRhaW5lciAiV2ViIGRlbCB0dXJpc3RhIiAiUGVybWl0ZSBidXNjYXIgdG91cnMsIHJlZ2lzdHJhciBlbCBib2xldG8gdHVyw61zdGljbywgcmVzZXJ2YXIgc2FsaWRhcyB5IHBhZ2FyIGVuIGzDrW5lYS4iICJSZWFjdCAoU1BBKSIKICAgICAgICAgICAgcG9ydGFsID0gY29udGFpbmVyICJQb3J0YWwgZGUgYWdlbmNpYXMiICJQZXJtaXRlIHB1YmxpY2FyIHRvdXJzIGNvbiBmZWNoYXMgeSBjdXBvcywgZ2VzdGlvbmFyIHJlc2VydmFzLCBhcHJvYmFyIGFnZW5jaWFzIHkgdmVyIHJlcG9ydGVzLiIgIlJlYWN0IChQV0EpIgogICAgICAgICAgICBhcGkgPSBjb250YWluZXIgIkFQSSIgIkV4cG9uZSBsYSBsw7NnaWNhIGRlIG5lZ29jaW8gZGUgdG91cnMsIHJlc2VydmFzLCB2YWxpZGFjacOzbiBkZSBib2xldG9zLCBwYWdvcyB5IG5vdGlmaWNhY2lvbmVzLiIgIkphdmEgMjEsIFNwcmluZyBCb290IgogICAgICAgICAgICBiZCA9IGNvbnRhaW5lciAiQmFzZSBkZSBkYXRvcyIgIkFsbWFjZW5hIGRhdG9zIGRlIGFnZW5jaWFzLCB0b3VycywgZmVjaGFzIGRlIHNhbGlkYSwgY3Vwb3MsIHJlc2VydmFzIHkgcmVnaXN0cm9zIGRlIHZlbnRhcy4iICJQb3N0Z3JlU1FMIDE2IgogICAgICAgIH0KCiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgICAgLy8gUEFTTyAyOiBTaXN0ZW1hcyBleHRlcm5vcwogICAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICAgIHBhc2FyZWxhID0gc29mdHdhcmVTeXN0ZW0gIlBhc2FyZWxhIGRlIHBhZ29zIiAiUHJvY2VzYSBjb2Jyb3MgZW4gbMOtbmVhIGNvbiB0YXJqZXRhIGRlIGNyw6lkaXRvL2TDqWJpdG8geSBiaWxsZXRlcmEgbcOzdmlsLiIgIkV4dGVybm8iCiAgICAgICAgd2hhdHNhcHAgPSBzb2Z0d2FyZVN5c3RlbSAiV2hhdHNBcHAgQnVzaW5lc3MiICJTZXJ2aWNpbyBkZSBtZW5zYWplcsOtYSBwYXJhIGVudmlhciBlbCBpdGluZXJhcmlvIHkgbGlzdGEgZGUgcGFzYWplcm9zIGEgbG9zIGd1w61hcy4iICJFeHRlcm5vIgogICAgICAgIGF1dG9jb2xjYSA9IHNvZnR3YXJlU3lzdGVtICJTaXN0ZW1hIGRlIEFVVE9DT0xDQSIgIkVtaXRlIGVsIGJvbGV0byB0dXLDrXN0aWNvIGRlbCBDb2xjYSB5IGV4cG9uZSB1biBzZXJ2aWNpbyBwYXJhIHZhbGlkYXIgc3UgdmlnZW5jaWEuIiAiRXh0ZXJubyIKCiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgICAgLy8gUEFTTyAyIHkgMzogUmVsYWNpb25lcyAoVW5pZGlyZWNjaW9uYWxlcyB5IGNvbiBwcm90b2NvbG8pCiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgICAgLy8gUGVyc29uYXMgLT4gQ29udGVuZWRvcmVzIGRlIFJ1dGFDb2xjYSAoU3RydWN0dXJpenIgaW5maWVyZSBlbCBuaXZlbCBkZSBDb250ZXh0byBhdXRvbcOhdGljYW1lbnRlKQogICAgICAgIHR1cmlzdGEgLT4gcnV0YS53ZWIgIkJ1c2NhIHRvdXJzLCByZWdpc3RyYSBib2xldG8geSBwYWdhIHJlc2VydmFzIGVuIiAiSFRUUFMiCiAgICAgICAgb3BlcmFkb3IgLT4gcnV0YS5wb3J0YWwgIlB1YmxpY2EgdG91cnMgY29uIGN1cG9zIHkgcmVnaXN0cmEgcmVzZXJ2YXMgZW4iICJIVFRQUyIKICAgICAgICBhZG1pbiAtPiBydXRhLnBvcnRhbCAiQXBydWViYSBhZ2VuY2lhcyB5IGNvbnN1bHRhIHJlcG9ydGVzIGRlIHZlbnRhcyBlbiIgIkhUVFBTIgoKICAgICAgICAvLyBDb211bmljYWNpw7NuIGludGVybmEgZW50cmUgY29udGVuZWRvcmVzCiAgICAgICAgcnV0YS53ZWIgLT4gcnV0YS5hcGkgIlNvbGljaXRhIGNhdMOhbG9nbywgcmVnaXN0cm8gZGUgcmVzZXJ2YXMgeSBwYWdvcyBhIiAiSlNPTi9IVFRQUyIKICAgICAgICBydXRhLnBvcnRhbCAtPiBydXRhLmFwaSAiR2VzdGlvbmEgdG91cnMsIGN1cG9zLCBhZ2VuY2lhcyB5IHJlcG9ydGVzIG1lZGlhbnRlIiAiSlNPTi9IVFRQUyIKICAgICAgICBydXRhLmFwaSAtPiBydXRhLmJkICJMZWUgeSBlc2NyaWJlIHJlZ2lzdHJvcyBkZSB0b3VycywgcmVzZXJ2YXMgeSB2ZW50YXMgZW4iICJKREJDIgoKICAgICAgICAvLyBDb250ZW5lZG9yIEFQSSAtPiBTaXN0ZW1hcyBleHRlcm5vcwogICAgICAgIHJ1dGEuYXBpIC0+IGF1dG9jb2xjYSAiVmFsaWRhIGVsIG7Dum1lcm8gZGUgYm9sZXRvIHR1csOtc3RpY28gZW4iICJIVFRQUyIKICAgICAgICBydXRhLmFwaSAtPiBwYXNhcmVsYSAiUHJvY2VzYSBlbCBjb2JybyBkZSBsYSByZXNlcnZhIGVuIiAiSFRUUFMiCiAgICAgICAgcnV0YS5hcGkgLT4gd2hhdHNhcHAgIkVudsOtYSBlbCBpdGluZXJhcmlvIHkgbGEgbGlzdGEgZGVsIGdydXBvIHBvciIgIkhUVFBTIgoKICAgICAgICAvLyBOb3RpZmljYWNpw7NuIGZpbmFsIGhhY2lhIGVsIGd1w61hCiAgICAgICAgd2hhdHNhcHAgLT4gZ3VpYSAiRW50cmVnYSBtZW5zYWplcyBjb24gZWwgaXRpbmVyYXJpbyB5IGxpc3RhIGRlIHBhc2FqZXJvcyBhIiAiSFRUUFMiCiAgICB9CgogICAgdmlld3MgewogICAgICAgIC8vIFZpc3RhIDE6IERpYWdyYW1hIGRlIENvbnRleHRvCiAgICAgICAgc3lzdGVtQ29udGV4dCBydXRhICJDb250ZXh0byIgIkRpYWdyYW1hIGRlIGNvbnRleHRvIGRlIFJ1dGFDb2xjYSIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICAgICAgYXV0b2xheW91dCBscgogICAgICAgIH0KCiAgICAgICAgLy8gVmlzdGEgMjogRGlhZ3JhbWEgZGUgQ29udGVuZWRvcmVzCiAgICAgICAgY29udGFpbmVyIHJ1dGEgIkNvbnRlbmVkb3JlcyIgIkRpYWdyYW1hIGRlIGNvbnRlbmVkb3JlcyBkZSBSdXRhQ29sY2EiIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgICAgIGF1dG9sYXlvdXQgdGIKICAgICAgICB9CgogICAgICAgIC8vIFBBU08gNCAtIFZpc3RhIDM6IERpYWdyYW1hIERpbsOhbWljbyAoSFUtMDIgeSBIVS0wMykKICAgICAgICAvLyBEZWNpc2nDs24gZGUgZGlzZcOxbzogU2UgdmFsaWRhIGVsIGJvbGV0byBjb24gQVVUT0NPTENBIEFOVEVTIGRlIGNvYnJhciBwYXJhIGV2aXRhciBjYXJnb3MgeSByZWVtYm9sc29zIHNpIGVsIGJvbGV0byBlcyBpbnbDoWxpZG8uCiAgICAgICAgZHluYW1pYyBydXRhICJEaW5hbWljbyIgIlJlc2VydmFyIHkgcGFnYXIgdW4gdG91ciAoSFUtMDIgeSBIVS0wMykiIHsKICAgICAgICAgICAgdHVyaXN0YSAtPiBydXRhLndlYiAiMS4gU2VsZWNjaW9uYSBmZWNoYSBkZSBzYWxpZGEsIGluZ3Jlc2EgbsO6bWVybyBkZSBib2xldG8gdHVyw61zdGljbyB5IGNvbmZpcm1hIGVsIHBhZ28iCiAgICAgICAgICAgIHJ1dGEud2ViIC0+IHJ1dGEuYXBpICIyLiBFbnbDrWEgc29saWNpdHVkIGRlIHJlc2VydmEgeSBwYWdvIChQT1NUIC9yZXNlcnZhcykiCiAgICAgICAgICAgIHJ1dGEuYXBpIC0+IGF1dG9jb2xjYSAiMy4gVmFsaWRhIGVsIG7Dum1lcm8gZGUgYm9sZXRvIHR1csOtc3RpY28gYW50ZXMgZGUgcHJvY2VzYXIgZWwgY29icm8iCiAgICAgICAgICAgIHJ1dGEuYXBpIC0+IHBhc2FyZWxhICI0LiBQcm9jZXNhIGVsIGNvYnJvIGRlbCB0b3VyIGNvbiB0YXJqZXRhIG8gYmlsbGV0ZXJhIG3Ds3ZpbCIKICAgICAgICAgICAgcnV0YS5hcGkgLT4gcnV0YS5iZCAiNS4gUmVnaXN0cmEgbGEgcmVzZXJ2YSBjb25maXJtYWRhIHkgZGVzY3VlbnRhIGVsIGN1cG8gZGlzcG9uaWJsZSIKICAgICAgICAgICAgcnV0YS5hcGkgLT4gd2hhdHNhcHAgIjYuIFByb2dyYW1hIGVsIGVudsOtbyBkZWwgaXRpbmVyYXJpbyB5IGxpc3RhIGFjdHVhbGl6YWRhIGRlbCBncnVwbyIKICAgICAgICAgICAgYXV0b2xheW91dCB0YgogICAgICAgIH0KCiAgICAgICAgc3R5bGVzIHsKICAgICAgICAgICAgZWxlbWVudCAiUGVyc29uIiB7CiAgICAgICAgICAgICAgICBzaGFwZSBQZXJzb24KICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzBCM0Q2MgogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIlNvZnR3YXJlIFN5c3RlbSIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjMTg1RThCCiAgICAgICAgICAgICAgICBjb2xvciAjZmZmZmZmCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiQ29udGFpbmVyIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICMwRTdENzMKICAgICAgICAgICAgICAgIGNvbG9yICNmZmZmZmYKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJFeHRlcm5vIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICM4QzhDOEMKICAgICAgICAgICAgICAgIGNvbG9yICNmZmZmZmYKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJEYXRhYmFzZSIgewogICAgICAgICAgICAgICAgc2hhcGUgQ3lsaW5kZXIKICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KfQ==",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "configuration" : {
+      "styles" : {
+        "elements" : [ {
+          "background" : "#0e7d73",
+          "color" : "#ffffff",
+          "tag" : "Container"
+        }, {
+          "shape" : "Cylinder",
+          "tag" : "Database"
+        }, {
+          "background" : "#8c8c8c",
+          "color" : "#ffffff",
+          "tag" : "Externo"
+        }, {
+          "background" : "#0b3d62",
+          "color" : "#ffffff",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "background" : "#185e8b",
+          "color" : "#ffffff",
+          "tag" : "Software System"
+        } ]
+      },
+      "terminology" : { }
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "TopBottom",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Diagrama de contenedores de RutaColca",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "Contenedores",
+      "name" : "Container View: RutaColca",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "13"
+      }, {
+        "id" : "15"
+      }, {
+        "id" : "17"
+      }, {
+        "id" : "19"
+      }, {
+        "id" : "20"
+      }, {
+        "id" : "21"
+      }, {
+        "id" : "22"
+      }, {
+        "id" : "24"
+      }, {
+        "id" : "26"
+      } ],
+      "softwareSystemId" : "5"
+    } ],
+    "dynamicViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "TopBottom",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Reservar y pagar un tour (HU-02 y HU-03)",
+      "elementId" : "5",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "Dinamico",
+      "name" : "Dynamic View: RutaColca",
+      "order" : 3,
+      "relationships" : [ {
+        "description" : "1. Selecciona fecha de salida, ingresa número de boleto turístico y confirma el pago",
+        "id" : "13",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "2. Envía solicitud de reserva y pago (POST /reservas)",
+        "id" : "19",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "3. Valida el número de boleto turístico antes de procesar el cobro",
+        "id" : "22",
+        "order" : "3",
+        "response" : false
+      }, {
+        "description" : "4. Procesa el cobro del tour con tarjeta o billetera móvil",
+        "id" : "24",
+        "order" : "4",
+        "response" : false
+      }, {
+        "description" : "5. Registra la reserva confirmada y descuenta el cupo disponible",
+        "id" : "21",
+        "order" : "5",
+        "response" : false
+      }, {
+        "description" : "6. Programa el envío del itinerario y lista actualizada del grupo",
+        "id" : "26",
+        "order" : "6",
+        "response" : false
+      } ]
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Diagrama de contexto de RutaColca",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "Contexto",
+      "name" : "System Context View: RutaColca",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "14"
+      }, {
+        "id" : "16"
+      }, {
+        "id" : "18"
+      }, {
+        "id" : "23"
+      }, {
+        "id" : "25"
+      }, {
+        "id" : "27"
+      } ],
+      "softwareSystemId" : "5"
+    } ]
+  }
+}
