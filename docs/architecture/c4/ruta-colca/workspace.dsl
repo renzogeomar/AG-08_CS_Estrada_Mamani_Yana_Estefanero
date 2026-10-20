@@ -19,6 +19,7 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Grupo AG-08" {
             portal = container "Portal de agencias" "Permite publicar tours con fechas y cupos, gestionar reservas, aprobar agencias y ver reportes." "React (PWA)"
             api = container "API" "Expone la lógica de negocio de tours, reservas, validación de boletos, pagos y notificaciones." "Java 21, Spring Boot"
             bd = container "Base de datos" "Almacena datos de agencias, tours, fechas de salida, cupos, reservas y registros de ventas." "PostgreSQL 16"
+            almacenLocal = container "Almacén local de reservas" "Guarda reservas pendientes de sincronizar en Chivay." "IndexedDB"
         }
 
         // ==========================================
@@ -36,7 +37,13 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Grupo AG-08" {
         admin -> ruta.portal "Aprueba agencias y consulta reportes de ventas en" "HTTPS"
 
         ruta.web -> ruta.api "Solicita catálogo, registro de reservas y pagos a" "JSON/HTTPS"
-        ruta.portal -> ruta.api "Gestiona tours, cupos, agencias y reportes mediante" "JSON/HTTPS"
+        
+        // NUEVA RELACIÓN PARA EL RETO SIN CONEXIÓN
+        ruta.portal -> ruta.almacenLocal "Guarda reservas pendientes en" "IndexedDB"
+        
+        // RELACIÓN MODIFICADA PARA LA SINCRONIZACIÓN
+        ruta.portal -> ruta.api "Gestiona tours, cupos, agencias y sincroniza reservas pendientes mediante" "JSON/HTTPS"
+        
         ruta.api -> ruta.bd "Lee y escribe registros de tours, reservas y ventas en" "JDBC"
 
         ruta.api -> autocolca "Valida el número de boleto turístico en" "HTTPS"
@@ -44,7 +51,6 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Grupo AG-08" {
         ruta.api -> whatsapp "Envía el itinerario y la lista del grupo por" "HTTPS"
 
         whatsapp -> guia "Entrega mensajes con el itinerario y lista de pasajeros a" "HTTPS"
-
         // ==========================================
         // PASO 7: Entorno de Despliegue (Aporte de Rodrigo adaptado)
         // ==========================================
