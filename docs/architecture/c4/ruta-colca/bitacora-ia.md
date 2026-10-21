@@ -1,0 +1,12 @@
+# Bitácora de uso de IA
+
+| N.º | Fecha | Prompt | Qué se aceptó | Qué se rechazó o corrigió | Responsable |
+|-----|-------|--------|---------------|---------------------------|-------------|
+| 1 | 15/10/2026 | P1 · Revisar el inventario | Confirmó que 11 de 12 elementos estaban bien clasificados. | Dijo que el guía no debía ser persona porque no usa la plataforma. Lo rechazamos: recibe el itinerario y es parte del flujo. | Rodrigo Estefanero |
+| 2 | 15/10/2026 | P2 · Contexto en Structurizr DSL | Bloque model con personas, sistemas externos con etiqueta «Externo» y relaciones. | Una relación decía «Usa AUTOCOLCA»; la cambiamos por «Valida el boleto turístico en». Faltaba la relación WhatsApp → guía. | Renzo Mamani |
+| 3 | 15/10/2026 | P3 · Contenedores a partir del ADR | Los cuatro contenedores con su tecnología y las relaciones con protocolo. | Agregó un contenedor «Docker» y otro de caché; los quitamos (Docker no es contenedor C4 y la caché no está en el ADR-001). Movió una relación portal → base de datos; la pasamos a portal → API. | Renzo Mamani |
+| 4 | 15/10/2026 | P4 · Vista dinámica desde una historia | Numeración y etiquetas con la acción concreta. | Cobraba antes de validar el boleto; invertimos el orden. Indicó que faltaba API → WhatsApp en contenedores y la agregamos. | Rodrigo Estefanero |
+| 5 | 15/10/2026 | P5 · Auditor C4 | Hallazgos sobre siglas sin explicar y dirección de la relación con el guía. | Propuso un contenedor «Docker»; lo rechazamos con la regla de abstracciones de C4. | Christian Yana |
+| 6 | 15/10/2026 | P6 · Borrador de explicación | La estructura (qué hace, quién lo usa, con qué se conecta) y el ejemplo del cuaderno de reservas. | Usaba «plataforma en la nube» y «API». El vocero reescribió el texto con sus palabras y lo ajustó a unas 120 palabras. | Sergio Estrada |
+| 7 | 18/10/2026 | P7 · Despliegue por entorno | Nodos del celular, la tablet y el proveedor cloud; API en 2 VM; balanceador como nodo de infraestructura. | Creó un contenedor nuevo para Docker dentro de la vista; lo eliminamos. Las relaciones entre nodos estaban dentro del bloque del entorno y las movimos afuera. | Rodrigo Estefanero |
+| 8 | 18/10/2026 | P8 · Analizar el impacto del reto | Cinco preguntas útiles: cupo, duplicados, datos guardados en la tablet, cuándo se valida el boleto y cómo se sabe que volvió la conexión. | Sugirió una cola de mensajes y una app nativa; no están en el ADR-001 y quedaron fuera. | Christian Yana |

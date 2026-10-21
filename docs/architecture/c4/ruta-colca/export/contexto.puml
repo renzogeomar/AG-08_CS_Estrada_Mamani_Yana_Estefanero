@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+title Diagrama de contexto de RutaColca
+Person(turista, "Turista", "Busca, reserva y paga tours.")
+Person(operador, "Operador de agencia", "Publica tours y registra reservas.")
+Person(admin, "Administrador", "Aprueba agencias y revisa ventas.")
+Person(guia, "Guía de turismo", "Recibe el itinerario por WhatsApp.")
+System(ruta, "RutaColca", "Publicar, reservar y pagar tours del Colca.")
+System_Ext(pasarela, "Pasarela de pagos", "Cobra con tarjeta o billetera móvil.")
+System_Ext(autocolca, "Sistema de AUTOCOLCA", "Valida el boleto turístico.")
+System_Ext(whatsapp, "WhatsApp Business", "Mensajería para avisos.")
+Rel(turista, ruta, "Busca tours, reserva y paga en")
+Rel(operador, ruta, "Publica tours y registra reservas en")
+Rel(admin, ruta, "Aprueba agencias y revisa ventas en")
+Rel(ruta, pasarela, "Cobra las reservas en")
+Rel(ruta, autocolca, "Valida el boleto turístico en")
+Rel(ruta, whatsapp, "Envía itinerarios por")
+Rel(whatsapp, guia, "Entrega mensajes a")
+SHOW_LEGEND()
+@enduml
