@@ -27,3 +27,6 @@
 2026-10-20T18:06:06.548Z  INFO 1 --- [main] com.structurizr.server.Local             : ***********************************************************************************
 2026-10-20T18:06:06.548Z  INFO 1 --- [main] com.structurizr.server.Local             : Themes:
 2026-10-20T18:06:06.549Z  INFO 1 --- [main] com.structurizr.server.Local             : ***********************************************************************************
+2026-10-20T20:28:51.039Z  INFO 1 --- [SpringApplicationShutdownHook] com.structurizr.server.AbstractServer    : ********************************************************
+2026-10-20T20:28:51.040Z  INFO 1 --- [SpringApplicationShutdownHook] com.structurizr.server.AbstractServer    :  Stopping Structurizr
+2026-10-20T20:28:51.040Z  INFO 1 --- [SpringApplicationShutdownHook] com.structurizr.server.AbstractServer    : ********************************************************
