@@ -1,0 +1,45 @@
+@startuml
+!include _style.iuml
+
+title Patrón Strategy - Cálculo de Precio en RutaColca (Escenario 2)
+
+class "«Cliente»\nReservaService" as Cliente {
+  +cotizarReserva(r: Reserva): BigDecimal
+}
+
+class "«Contexto»\nReserva" as Reserva {
+  -precioBase: BigDecimal
+  -pasajeros: int
+  -politicaPrecio: PoliticaPrecio
+  +setPoliticaPrecio(p: PoliticaPrecio): void
+  +calcularTotal(): BigDecimal
+}
+
+interface "«Estrategia (interface)»\nPoliticaPrecio" as Estrategia {
+  +calcular(r: Reserva): BigDecimal
+}
+
+class "«Estrategia Concreta»\nPrecioTemporadaAlta" as TempAlta {
+  +calcular(r: Reserva): BigDecimal
+}
+
+class "«Estrategia Concreta»\nPrecioGrupo" as Grupo {
+  +calcular(r: Reserva): BigDecimal
+}
+
+class "«Estrategia Concreta»\nPrecioEstudiante" as Estudiante {
+  +calcular(r: Reserva): BigDecimal
+}
+
+note bottom of Grupo
+  Descuento del 15%
+  para grupos >= 5 personas
+end note
+
+Cliente --> Reserva : configura y solicita total
+Reserva o--> Estrategia : delega cálculo
+TempAlta ..|> Estrategia
+Grupo ..|> Estrategia
+Estudiante ..|> Estrategia
+
+@enduml

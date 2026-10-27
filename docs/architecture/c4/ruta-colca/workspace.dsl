@@ -9,19 +9,16 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Grupo N.º __" {
         guia = person "Guía de turismo" "Acompaña a los grupos. Recibe el itinerario y la lista del grupo por WhatsApp."
         admin = person "Administrador" "Aprueba a las agencias que se registran y revisa las ventas."
 
-        // PASO 2 · Sistemas externos (etiqueta "Externo")
-        pasarela = softwareSystem "Pasarela de pagos" "Cobra con tarjeta o billetera móvil. RutaColca no guarda datos de tarjetas." "Externo"
-        autocolca = softwareSystem "Sistema de AUTOCOLCA" "Emite y valida el boleto turístico del Colca (supuesto didáctico, API HTTPS)." "Externo"
-        whatsapp = softwareSystem "WhatsApp Business" "Mensajería para enviar avisos a los guías." "Externo"
-
-        // PASO 2 y 3 · El sistema en estudio y sus contenedores (ADR-001)
-        ruta = softwareSystem "RutaColca" "Permite publicar tours del valle del Colca, reservarlos y pagarlos en línea." {
-            web = container "Web del turista" "Búsqueda de tours, reserva y pago en línea." "React (SPA)"
-            portal = container "Portal de agencias" "Publicación de tours, registro de reservas y administración." "React (PWA)"
-            api = container "API" "Reglas de negocio de tours, reservas, pagos y avisos." "Java 21, Spring Boot"
-            bd = container "Base de datos" "Agencias, tours, salidas y reservas." "PostgreSQL 16" "Database"
-            // PASO 8 · Reto sin conexión (ADR-002)
-            almacen = container "Almacén local de reservas" "Guarda las reservas hechas sin internet hasta sincronizarlas." "IndexedDB" "Database,Nuevo"
+        // ==========================================
+        // PASO 2 y 3: Sistema en estudio y Contenedores (ADR-001)
+        // ==========================================
+        ruta = softwareSystem "RutaColca" "Plataforma para publicar, reservar y pagar tours al valle del Colca con validación de boletos." {
+            web = container "Web del turista" "Permite buscar tours, registrar el boleto turístico, reservar salidas y pagar en línea." "React (SPA)"
+            portal = container "Portal de agencias" "Permite publicar tours con fechas y cupos, gestionar reservas, aprobar agencias y ver reportes." "React (PWA)"
+            api = container "API" "Expone la lógica de negocio de tours, reservas, validación de boletos, pagos y notificaciones." "Java 21, Spring Boot"
+            bd = container "Base de datos" "Almacena datos de agencias, tours, fechas de salida, cupos, reservas y registros de ventas." "PostgreSQL 16"
+        // AGREGADO POR CHRISTIAN: Reto sin conexión
+        almacenLocal = container "Almacenamiento Local" "Guarda temporalmente las reservas presenciales de la agencia cuando se pierde la conexión." "IndexedDB / Navegador"
         }
 
         // PASO 2 · Relaciones del contexto (sin protocolo)
@@ -44,16 +41,28 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Grupo N.º __" {
         ruta.api -> autocolca "Valida el boleto turístico en" "HTTPS"
         ruta.api -> whatsapp "Envía itinerarios por" "HTTPS"
 
-        // PASO 8 · Relaciones nuevas del reto
-        ruta.portal -> ruta.almacen "Guarda reservas sin conexión en" "IndexedDB API"
-        ruta.portal -> ruta.api "Sincroniza reservas pendientes con" "JSON/HTTPS" "Sincronizacion"
+        ruta.web -> ruta.api "Solicita catálogo, registro de reservas y pagos a" "JSON/HTTPS"
+        
+        // Relación del Reto sin conexión (Christian)
+        ruta.portal -> ruta.almacenLocal "Lee y escribe reservas offline en caché mediante" "JavaScript API"
+        
+        // RELACIÓN MODIFICADA PARA LA SINCRONIZACIÓN
+        ruta.portal -> ruta.api "Gestiona tours, cupos, agencias y sincroniza reservas pendientes mediante" "JSON/HTTPS"
+        
+        ruta.api -> ruta.bd "Lee y escribe registros de tours, reservas y ventas en" "JDBC"
 
-        // PASO 7 · Despliegue en producción
-        produccion = deploymentEnvironment "Produccion" {
-            celular = deploymentNode "Celular del turista" "Dispositivo del turista" "Android / iOS" {
-                navegador = deploymentNode "Navegador web" "Navegador del celular" "Chrome / Safari" {
-                    web = containerInstance ruta.web
-                }
+        ruta.api -> autocolca "Valida el número de boleto turístico en" "HTTPS"
+        ruta.api -> pasarela "Procesa el cobro de la reserva en" "HTTPS"
+        ruta.api -> whatsapp "Envía el itinerario y la lista del grupo por" "HTTPS"
+
+        whatsapp -> guia "Entrega mensajes con el itinerario y lista de pasajeros a" "HTTPS"
+        
+        // ==========================================
+        // PASO 7: Entorno de Despliegue (Aporte de Rodrigo adaptado)
+        // ==========================================
+        deploymentEnvironment "Produccion" {
+            deploymentNode "Dispositivo móvil del turista" "Dispositivo desde el que el turista consulta y reserva." "Android / iOS" {
+                containerInstance ruta.web
             }
             tablet = deploymentNode "Tablet de la agencia" "Dispositivo de la agencia" "Android / iOS" {
                 navegador = deploymentNode "Navegador web" "Navegador de la tablet" "Chrome" {
