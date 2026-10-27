@@ -1,0 +1,39 @@
+@startuml
+!include _style.iuml
+
+title Patrón Observador - Notificaciones de Reserva en RutaColca (Escenario 3)
+
+class "«Cliente»\nReservaService" as Cliente {
+  +confirmarReserva(r: Reserva): void
+}
+
+class "«Sujeto»\nPublicadorReservas" as Sujeto {
+  -observadores: List<ObservadorReserva>
+  +suscribir(o: ObservadorReserva): void
+  +desuscribir(o: ObservadorReserva): void
+  +notificarConfirmacion(r: Reserva): void
+}
+
+interface "«Observador (interface)»\nObservadorReserva" as Observador {
+  +reservaConfirmada(r: Reserva): void
+}
+
+class "«Observador Concreto»\nAvisoTuristaCorreo" as Turista {
+  +reservaConfirmada(r: Reserva): void
+}
+
+class "«Observador Concreto»\nAvisoGuiaWhatsApp" as Guia {
+  +reservaConfirmada(r: Reserva): void
+}
+
+class "«Observador Concreto»\nAvisoAgenciaPortal" as Agencia {
+  +reservaConfirmada(r: Reserva): void
+}
+
+Cliente --> Sujeto : dispara evento
+Sujeto o--> "0..*" Observador : notifica a
+Turista ..|> Observador
+Guia ..|> Observador
+Agencia ..|> Observador
+
+@enduml
