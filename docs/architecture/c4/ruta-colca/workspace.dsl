@@ -1,139 +1,95 @@
-workspace "RutaColca" "Modelo C4 de RutaColca - Grupo N.º __" {
+workspace "RutaColca" "Modelo C4 de RutaColca tras la iteración de ADD de AG-10 (escenario E2: pasarela de pagos caída). Construcción de Software, EPIS-UNSA 2026-B." {
 
     !identifiers hierarchical
 
     model {
-        // PASO 1 y 2 · Personas
-        turista = person "Turista" "Visitante que busca tours al valle del Colca, reserva una salida y paga en línea."
-        operador = person "Operador de agencia" "Persona de una agencia de Arequipa o Chivay que publica tours y registra reservas."
-        guia = person "Guía de turismo" "Acompaña a los grupos. Recibe el itinerario y la lista del grupo por WhatsApp."
-        admin = person "Administrador" "Aprueba a las agencias que se registran y revisa las ventas."
+        turista = person "Turista" "Visitante nacional o extranjero que reserva tours al valle del Colca."
+        agencia = person "Operador de agencia" "Personal de una agencia de Arequipa o Chivay que publica tours y gestiona reservas."
+        admin = person "Administrador de RutaColca" "Aprueba agencias y revisa reportes de ventas."
 
-        // ==========================================
-        // PASO 2 y 3: Sistema en estudio y Contenedores (ADR-001)
-        // ==========================================
-        ruta = softwareSystem "RutaColca" "Plataforma para publicar, reservar y pagar tours al valle del Colca con validación de boletos." {
-            web = container "Web del turista" "Permite buscar tours, registrar el boleto turístico, reservar salidas y pagar en línea." "React (SPA)"
-            portal = container "Portal de agencias" "Permite publicar tours con fechas y cupos, gestionar reservas, aprobar agencias y ver reportes." "React (PWA)"
-            api = container "API" "Expone la lógica de negocio de tours, reservas, validación de boletos, pagos y notificaciones." "Java 21, Spring Boot"
-            bd = container "Base de datos" "Almacena datos de agencias, tours, fechas de salida, cupos, reservas y registros de ventas." "PostgreSQL 16"
-        // AGREGADO POR CHRISTIAN: Reto sin conexión
-        almacenLocal = container "Almacenamiento Local" "Guarda temporalmente las reservas presenciales de la agencia cuando se pierde la conexión." "IndexedDB / Navegador"
+        ruta = softwareSystem "RutaColca" "Publicación de tours, reservas y pagos en línea para el valle del Colca." {
+            web = container "Web del turista" "Catálogo de tours, reserva y pago." "React (SPA)" "Web"
+            portal = container "Portal de agencias" "Publica tours, registra reservas presenciales y asigna guías; funciona sin conexión." "React (PWA) + Service Worker" "Web"
+
+            // AG-10: ahora cobra con timeout y deja la reserva pendiente si la pasarela falla
+            api = container "API" "Reglas de negocio de tours, reservas, pagos y sincronización. Monolito modular con arquitectura hexagonal (ADR-001)." "Java 21, Spring Boot" "AG-10" {
+                controller = component "ReservasController" "Recibe POST /reservas y responde 201 (confirmada) o 202 (pago en proceso)." "Spring MVC" "AG-10"
+                reservar = component "ReservarTour" "Caso de uso: crea la reserva, cobra y, si la pasarela falla, la deja en PENDIENTE_PAGO." "Java (núcleo hexagonal)" "AG-10"
+                adaptador = component "AdaptadorPasarela" "Implementa el puerto PasarelaPago con timeout de 5 s, circuit breaker y clave de idempotencia." "Resilience4j" "AG-10"
+                outbox = component "RepositorioOutbox" "Guarda la reserva y la tarea de cobro pendiente en una sola transacción." "Spring Data JPA" "AG-10"
+            }
+
+            // AG-10: contenedor nuevo
+            worker = container "Procesador de tareas" "Reintenta los cobros pendientes con espera exponencial y envía las confirmaciones diferidas." "Java 21, Spring Boot (perfil worker, @Scheduled)" "AG-10"
+            // AG-10: se agrega la tabla outbox
+            bd = container "Base de datos" "Agencias, tours, salidas, reservas, pagos y tareas pendientes (outbox)." "PostgreSQL 16" "Database,AG-10"
         }
 
-        // PASO 2 · Relaciones del contexto (sin protocolo)
-        turista -> ruta "Busca tours, reserva y paga en"
-        operador -> ruta "Publica tours y registra reservas en"
-        admin -> ruta "Aprueba agencias y revisa ventas en"
-        ruta -> pasarela "Cobra las reservas en"
-        ruta -> autocolca "Valida el boleto turístico en"
-        ruta -> whatsapp "Envía itinerarios por"
-        whatsapp -> guia "Entrega mensajes a"
+        pasarela = softwareSystem "Pasarela de pagos" "Procesa pagos con tarjeta y billetera móvil." "Externo"
+        whatsapp = softwareSystem "WhatsApp Business" "Mensajería para enviar itinerarios y confirmaciones." "Externo"
+        autocolca = softwareSystem "Sistema de AUTOCOLCA" "Emite y valida el boleto turístico del Colca (integración supuesta en el caso)." "Externo"
 
-        // PASO 3 · Relaciones entre contenedores (con protocolo)
-        turista -> ruta.web "Busca tours y paga reservas en" "HTTPS"
-        operador -> ruta.portal "Publica tours y registra reservas en" "HTTPS"
-        admin -> ruta.portal "Aprueba agencias y consulta ventas en" "HTTPS"
-        ruta.web -> ruta.api "Envía búsquedas y reservas a" "JSON/HTTPS"
-        ruta.portal -> ruta.api "Envía tours y reservas a" "JSON/HTTPS"
-        ruta.api -> ruta.bd "Lee y escribe tours y reservas en" "JDBC"
-        ruta.api -> pasarela "Cobra las reservas en" "HTTPS"
-        ruta.api -> autocolca "Valida el boleto turístico en" "HTTPS"
+        // ---- Relaciones de AG-08 (sin cambios)
+        turista -> ruta.web "Busca tours, reserva y paga en" "HTTPS"
+        agencia -> ruta.portal "Publica tours y registra reservas en" "HTTPS"
+        admin -> ruta.portal "Aprueba agencias y revisa reportes en" "HTTPS"
+        ruta.web -> ruta.api.controller "Envía reservas y pagos a" "JSON/HTTPS"
+        ruta.portal -> ruta.api.controller "Sincroniza tours y reservas con" "JSON/HTTPS"
         ruta.api -> whatsapp "Envía itinerarios por" "HTTPS"
+        ruta.api -> autocolca "Valida el boleto turístico en" "HTTPS"
 
-        ruta.web -> ruta.api "Solicita catálogo, registro de reservas y pagos a" "JSON/HTTPS"
-        
-        // Relación del Reto sin conexión (Christian)
-        ruta.portal -> ruta.almacenLocal "Lee y escribe reservas offline en caché mediante" "JavaScript API"
-        
-        // RELACIÓN MODIFICADA PARA LA SINCRONIZACIÓN
-        ruta.portal -> ruta.api "Gestiona tours, cupos, agencias y sincroniza reservas pendientes mediante" "JSON/HTTPS"
-        
-        ruta.api -> ruta.bd "Lee y escribe registros de tours, reservas y ventas en" "JDBC"
+        // ---- Relaciones nuevas de AG-10
+        ruta.api.controller -> ruta.api.reservar "Invoca"
+        ruta.api.reservar -> ruta.api.adaptador "Cobra con"
+        ruta.api.reservar -> ruta.api.outbox "Guarda la reserva pendiente y su tarea con"
+        ruta.api.adaptador -> pasarela "Intenta el cobro en" "HTTPS"
+        ruta.api.outbox -> ruta.bd "Lee y escribe en" "JDBC"
+        ruta.worker -> ruta.bd "Lee tareas pendientes y actualiza reservas en" "JDBC"
+        ruta.worker -> pasarela "Reintenta cobros en" "HTTPS"
+        ruta.worker -> whatsapp "Envía confirmaciones diferidas por" "HTTPS"
 
-        ruta.api -> autocolca "Valida el número de boleto turístico en" "HTTPS"
-        ruta.api -> pasarela "Procesa el cobro de la reserva en" "HTTPS"
-        ruta.api -> whatsapp "Envía el itinerario y la lista del grupo por" "HTTPS"
-
-        whatsapp -> guia "Entrega mensajes con el itinerario y lista de pasajeros a" "HTTPS"
-        
-        // ==========================================
-        // PASO 7: Entorno de Despliegue (Aporte de Rodrigo adaptado)
-        // ==========================================
-        deploymentEnvironment "Produccion" {
-            deploymentNode "Dispositivo móvil del turista" "Dispositivo desde el que el turista consulta y reserva." "Android / iOS" {
-                containerInstance ruta.web
-            }
-            tablet = deploymentNode "Tablet de la agencia" "Dispositivo de la agencia" "Android / iOS" {
-                navegador = deploymentNode "Navegador web" "Navegador de la tablet" "Chrome" {
-                    portal = containerInstance ruta.portal
-                    almacen = containerInstance ruta.almacen
+        produccion = deploymentEnvironment "Produccion" {
+            cloud = deploymentNode "Proveedor cloud" "" "Región sa-east-1" {
+                lb = infrastructureNode "Balanceador de carga" "Termina TLS y reparte el tráfico HTTPS." "Load balancer gestionado"
+                vm = deploymentNode "VM Ubuntu 24.04" "" "Docker" "" 2 {
+                    apiProd = containerInstance ruta.api
+                    // AG-10: el procesador comparte las VM de la API (sin VM nueva)
+                    workerProd = containerInstance ruta.worker
                 }
-            }
-            nube = deploymentNode "Proveedor cloud" "Infraestructura en la nube" "Región sa-east-1" {
-                balanceador = infrastructureNode "Balanceador de carga" "Termina TLS y reparte el tráfico HTTPS." "Balanceador gestionado"
-                vm = deploymentNode "VM Ubuntu 24.04" "Máquina virtual que ejecuta la API con Docker" "Ubuntu 24.04, Docker" "" 2 {
-                    api = containerInstance ruta.api
+                deploymentNode "BD gestionada" "" "PostgreSQL 16 (primaria + réplica)" {
+                    containerInstance ruta.bd
                 }
-                bdgestionada = deploymentNode "BD gestionada" "Servicio de base de datos administrado" "PostgreSQL 16" {
-                    bd = containerInstance ruta.bd
-                }
-            }
-            externos = deploymentNode "Servicios externos" "Proveedores de terceros" "Internet" {
-                pasarelaInst = softwareSystemInstance pasarela
-                autocolcaInst = softwareSystemInstance autocolca
-                whatsappInst = softwareSystemInstance whatsapp
             }
         }
-
-        // Relaciones entre nodos: van fuera del bloque del entorno
-        produccion.celular.navegador.web -> produccion.nube.balanceador "Envía las peticiones a" "HTTPS"
-        produccion.tablet.navegador.portal -> produccion.nube.balanceador "Envía las peticiones a" "HTTPS"
-        produccion.nube.balanceador -> produccion.nube.vm.api "Reenvía las peticiones a" "HTTP"
+        produccion.cloud.lb -> produccion.cloud.vm.apiProd "Reenvía las peticiones a" "HTTPS"
     }
 
     views {
-        systemContext ruta "Contexto" "Diagrama de contexto de RutaColca" {
-            title "Diagrama de contexto de RutaColca"
+        container ruta "Contenedores" "Contenedores de RutaColca tras la iteración de ADD de AG-10." {
             include *
-            include guia
-            autolayout lr
-        }
-
-        container ruta "Contenedores" "Diagrama de contenedores de RutaColca" {
-            title "Diagrama de contenedores de RutaColca"
-            include *
-            include guia
-            exclude ruta.almacen
-            exclude "relationship.tag==Sincronizacion"
             autolayout tb
         }
 
-        // PASO 4 · Dinámico. Se valida el boleto ANTES de cobrar.
-        dynamic ruta "Dinamico" "Reservar y pagar un tour" {
-            title "Diagrama dinámico: Reservar y pagar un tour (HU-02 y HU-03)"
-            turista -> ruta.web "Elige la salida, ingresa su boleto y confirma el pago"
-            ruta.web -> ruta.api "Envía la reserva y el número de boleto"
-            ruta.api -> autocolca "Valida el boleto turístico"
-            ruta.api -> pasarela "Cobra el monto de la reserva"
-            ruta.api -> ruta.bd "Guarda la reserva como CONFIRMADA"
-            ruta.api -> whatsapp "Envía el itinerario y la lista del grupo"
+        component ruta.api "Componentes" "Componentes de la API (hexagonal) que participan en el cobro de una reserva." {
+            include *
             autolayout tb
         }
 
-        // PASO 7 · Despliegue
-        deployment ruta "Produccion" "DespliegueProduccion" "Despliegue de RutaColca en producción" {
-            title "Despliegue de RutaColca en producción"
+        dynamic ruta "PagoConPasarelaCaida" "Escenario E2: la pasarela no responde al pagar y la reserva se confirma después." {
+            turista -> ruta.web "Reserva y paga"
+            ruta.web -> ruta.api "Envía POST /reservas"
+            ruta.api -> pasarela "Intenta cobrar (timeout de 5 s): no responde"
+            ruta.api -> ruta.bd "Guarda la reserva PENDIENTE_PAGO y la tarea en la outbox (una transacción)"
+            ruta.worker -> ruta.bd "Lee la tarea pendiente (cada minuto, con espera exponencial)"
+            ruta.worker -> pasarela "Reintenta el cobro con la misma clave de idempotencia (aprobado)"
+            ruta.worker -> ruta.bd "Marca la reserva CONFIRMADA y cierra la tarea"
+            ruta.worker -> whatsapp "Envía la confirmación al turista"
+            autolayout tb
+        }
+
+        deployment ruta produccion "Despliegue" "Despliegue de RutaColca en temporada alta: el procesador de tareas comparte las VM de la API." {
             include *
             autolayout lr
-        }
-
-        // PASO 8 · Segunda vista de contenedores (reto sin conexión)
-        container ruta "ContenedoresReto" "Contenedores de RutaColca con trabajo sin conexión" {
-            title "Diagrama de contenedores de RutaColca con trabajo sin conexión"
-            include *
-            include guia
-            autolayout tb
         }
 
         styles {
@@ -150,20 +106,27 @@ workspace "RutaColca" "Modelo C4 de RutaColca - Grupo N.º __" {
                 background #0E7D73
                 color #ffffff
             }
-            element "Externo" {
-                background #8C8C8C
+            element "Component" {
+                background #758F3A
                 color #ffffff
             }
             element "Database" {
                 shape Cylinder
             }
-            element "Nuevo" {
-                stroke #C65D00
-                strokeWidth 6
+            element "Web" {
+                shape WebBrowser
             }
-            relationship "Sincronizacion" {
-                color #C65D00
-                thickness 4
+            element "Infrastructure Node" {
+                background #ffffff
+                color #262626
+            }
+            element "Externo" {
+                background #8C8C8C
+                color #ffffff
+            }
+            element "AG-10" {
+                stroke #E8892B
+                strokeWidth 6
             }
         }
     }
