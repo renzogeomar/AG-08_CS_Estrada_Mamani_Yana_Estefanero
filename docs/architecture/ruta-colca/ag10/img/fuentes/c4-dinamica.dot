@@ -1,0 +1,18 @@
+digraph G { rankdir=LR; bgcolor=white; fontname="Arial"; pad=0.2; nodesep=0.45; ranksep=0.7; splines=true; nodesep=0.5; ranksep=1.0; node [fontname="Arial", fontsize=12]; edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="#333333", style=dashed, arrowsize=0.8]; edge [style=solid, color="#444444", fontsize=10, arrowsize=0.9];
+tur [label=<<B>Turista</B><BR/><FONT POINT-SIZE="9">[Persona]</FONT><BR/><FONT POINT-SIZE="10">Reserva y paga un<BR/>tour.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0B3D62", fontcolor=white, color="#0B3D62", penwidth=1.2, margin="0.18,0.12"];
+web [label=<<B>Web del turista</B><BR/><FONT POINT-SIZE="9">[React (SPA)]</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+api [label=<<B>API</B><BR/><FONT POINT-SIZE="9">[Spring Boot]</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+bd [label=<<B>Base de datos</B><BR/><FONT POINT-SIZE="9">[PostgreSQL 16]</FONT>>, shape=cylinder, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+wor [label=<<B>Procesador de tareas</B><BR/><FONT POINT-SIZE="9">[Spring Boot (worker)]</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+pas [label=<<B>Pasarela de pagos</B><BR/><FONT POINT-SIZE="9">[Externo]</FONT>>, shape=box, style="rounded,filled" , fillcolor="#8C8C8C", fontcolor=white, color="#8C8C8C", penwidth=1.2, margin="0.18,0.12"];
+wha [label=<<B>WhatsApp Business</B><BR/><FONT POINT-SIZE="9">[Externo]</FONT>>, shape=box, style="rounded,filled" , fillcolor="#8C8C8C", fontcolor=white, color="#8C8C8C", penwidth=1.2, margin="0.18,0.12"];
+tur -> web [label="1. Reserva y paga"];
+web -> api [label="2. POST /reservas"];
+api -> pas [label="3. Intenta cobrar (timeout 5 s): no responde"];
+api -> bd [label="4. Guarda la reserva PENDIENTE_PAGO\ny la tarea en la outbox (1 transacción)"];
+wor -> bd [label="5. Lee la tarea pendiente (cada minuto,\ncon espera exponencial)"];
+wor -> pas [label="6. Reintenta el cobro con la misma clave\n(la pasarela ya responde: aprobado)"];
+wor -> bd [label="7. Marca la reserva CONFIRMADA\ny cierra la tarea"];
+wor -> wha [label="8. Envía la confirmación al turista"];
+{rank=same; tur; web}
+}

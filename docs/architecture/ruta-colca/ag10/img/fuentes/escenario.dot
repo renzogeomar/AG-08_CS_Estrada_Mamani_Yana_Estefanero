@@ -1,0 +1,11 @@
+digraph G { rankdir=LR; bgcolor=white; fontname="Arial"; pad=0.2; nodesep=0.45; ranksep=0.7; splines=true; nodesep=0.3; ranksep=0.45; node [fontname="Arial", fontsize=12]; edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="#333333", style=dashed, arrowsize=0.8]; edge [style=solid, color="#800000", penwidth=1.6];
+f [label=<<B>Fuente</B><BR/><FONT POINT-SIZE="10">Turista que paga<BR/>una reserva en la<BR/>web</FONT>>, shape=box, style="rounded,filled", fillcolor="#E3EDF5", color="#7F7F7F", fontcolor="#1a1a1a", margin="0.15,0.1"];
+e [label=<<B>Estímulo</B><BR/><FONT POINT-SIZE="10">La pasarela de<BR/>pagos no responde<BR/>durante 15 minutos</FONT>>, shape=box, style="rounded,filled", fillcolor="#FBEFD9", color="#7F7F7F", fontcolor="#1a1a1a", margin="0.15,0.1"];
+a [label=<<B>Artefacto</B><BR/><FONT POINT-SIZE="10">Módulo de pagos de<BR/>la API, procesador<BR/>de tareas y base de<BR/>datos</FONT>>, shape=box, style="rounded,filled", fillcolor="#E3EDF5", color="#7F7F7F", fontcolor="#1a1a1a", margin="0.15,0.1"];
+n [label=<<B>Entorno</B><BR/><FONT POINT-SIZE="10">Temporada alta: ≈<BR/>10 veces las<BR/>reservas normales</FONT>>, shape=box, style="rounded,filled", fillcolor="#F2F2F2", color="#7F7F7F", fontcolor="#1a1a1a", margin="0.15,0.1"];
+r [label=<<B>Respuesta</B><BR/><FONT POINT-SIZE="10">Guarda la reserva<BR/>como pendiente y<BR/>reintenta el cobro<BR/>hasta confirmarla</FONT>>, shape=box, style="rounded,filled", fillcolor="#E3F1EA", color="#7F7F7F", fontcolor="#1a1a1a", margin="0.15,0.1"];
+m [label=<<B>Medida</B><BR/><FONT POINT-SIZE="10">0 reservas<BR/>perdidas;<BR/>confirmación ≤ 30<BR/>min tras la<BR/>recuperación</FONT>>, shape=box, style="rounded,filled", fillcolor="#E3F1EA", color="#7F7F7F", fontcolor="#1a1a1a", margin="0.15,0.1"];
+f -> e -> a -> r -> m;
+ n -> a [style=dashed, color="#7F7F7F", arrowhead=none, constraint=false];
+{rank=same; a; n}
+}

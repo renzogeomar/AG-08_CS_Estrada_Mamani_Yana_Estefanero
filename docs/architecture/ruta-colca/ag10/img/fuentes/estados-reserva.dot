@@ -1,0 +1,14 @@
+digraph G { rankdir=LR; bgcolor=white; fontname="Arial"; pad=0.2; nodesep=0.45; ranksep=0.7; splines=true; nodesep=0.5; ranksep=0.9; node [fontname="Arial", fontsize=12]; edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="#333333", style=dashed, arrowsize=0.8]; edge [style=solid, color="#444444", fontsize=10];
+ini [shape=circle, label="", width=0.2, style=filled, fillcolor="#333333"];
+PENDIENTE_PAGO [shape=box, style="rounded,filled", fillcolor="#FBEFD9", color="#7F7F7F", fontsize=12];
+CONFIRMADA [shape=box, style="rounded,filled", fillcolor="#E3F1EA", color="#7F7F7F", fontsize=12];
+RECHAZADA [shape=box, style="rounded,filled", fillcolor="#F5DEDE", color="#7F7F7F", fontsize=12];
+EXPIRADA [shape=box, style="rounded,filled", fillcolor="#EDEDED", color="#7F7F7F", fontsize=12];
+ini -> PENDIENTE_PAGO [label="pasarela no\nresponde"];
+ini -> CONFIRMADA [label="cobro aprobado\nal primer intento"];
+ini -> RECHAZADA [label="cobro rechazado"];
+PENDIENTE_PAGO -> PENDIENTE_PAGO [label="reintento fallido\n(espera 1, 2, 4, 5 min…)"];
+PENDIENTE_PAGO -> CONFIRMADA [label="reintento aprobado"];
+PENDIENTE_PAGO -> RECHAZADA [label="reintento rechazado"];
+PENDIENTE_PAGO -> EXPIRADA [label="pasan 2 h sin cobrar"];
+}

@@ -1,0 +1,31 @@
+digraph G { rankdir=TB; bgcolor=white; fontname="Arial"; pad=0.2; nodesep=0.45; ranksep=0.7; splines=true; node [fontname="Arial", fontsize=12]; edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="#333333", style=dashed, arrowsize=0.8];
+tur [label=<<B>Turista</B><BR/><FONT POINT-SIZE="9">[Persona]</FONT><BR/><FONT POINT-SIZE="10">Visitante que reserva<BR/>tours al valle del Colca.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0B3D62", fontcolor=white, color="#0B3D62", penwidth=1.2, margin="0.18,0.12"];
+age [label=<<B>Operador de agencia</B><BR/><FONT POINT-SIZE="9">[Persona]</FONT><BR/><FONT POINT-SIZE="10">Publica tours y gestiona<BR/>reservas.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0B3D62", fontcolor=white, color="#0B3D62", penwidth=1.2, margin="0.18,0.12"];
+adm [label=<<B>Administrador de RutaColca</B><BR/><FONT POINT-SIZE="9">[Persona]</FONT><BR/><FONT POINT-SIZE="10">Aprueba agencias y revisa<BR/>reportes.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0B3D62", fontcolor=white, color="#0B3D62", penwidth=1.2, margin="0.18,0.12"];
+subgraph cluster_r { label="RutaColca"; fontname="Arial"; fontsize=13; color="#1B5E8B"; style=rounded; margin=18;
+web [label=<<B>Web del turista</B><BR/><FONT POINT-SIZE="9">[React (SPA)]</FONT><BR/><FONT POINT-SIZE="10">Catálogo de tours, reserva y<BR/>pago.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+por [label=<<B>Portal de agencias</B><BR/><FONT POINT-SIZE="9">[React (PWA)]</FONT><BR/><FONT POINT-SIZE="10">Publica tours y registra<BR/>reservas; funciona sin<BR/>conexión.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+api [label=<<B>API</B><BR/><FONT POINT-SIZE="9">[Java 21, Spring Boot]</FONT><BR/><FONT POINT-SIZE="10">Monolito modular hexagonal. Cobra<BR/>con timeout y, si falla, deja la<BR/>reserva pendiente.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+wor [label=<<B>Procesador de tareas</B><BR/><FONT POINT-SIZE="9">[Java 21, Spring Boot (perfil worker)]</FONT><BR/><FONT POINT-SIZE="10">Reintenta cobros pendientes cada<BR/>minuto y envía confirmaciones.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+bd [label=<<B>Base de datos</B><BR/><FONT POINT-SIZE="9">[PostgreSQL 16]</FONT><BR/><FONT POINT-SIZE="10">Tours, reservas, pagos y<BR/>tareas pendientes (outbox).</FONT>>, shape=cylinder, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+{rank=same; web; por}
+{rank=same; api; wor}
+}
+pas [label=<<B>Pasarela de pagos</B><BR/><FONT POINT-SIZE="9">[Sistema externo]</FONT><BR/><FONT POINT-SIZE="10">Procesa pagos con tarjeta y<BR/>billetera móvil.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#8C8C8C", fontcolor=white, color="#8C8C8C", penwidth=1.2, margin="0.18,0.12"];
+wha [label=<<B>WhatsApp Business</B><BR/><FONT POINT-SIZE="9">[Sistema externo]</FONT><BR/><FONT POINT-SIZE="10">Envía itinerarios y<BR/>confirmaciones.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#8C8C8C", fontcolor=white, color="#8C8C8C", penwidth=1.2, margin="0.18,0.12"];
+aut [label=<<B>Sistema de AUTOCOLCA</B><BR/><FONT POINT-SIZE="9">[Sistema externo]</FONT><BR/><FONT POINT-SIZE="10">Emite y valida el boleto<BR/>turístico.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#8C8C8C", fontcolor=white, color="#8C8C8C", penwidth=1.2, margin="0.18,0.12"];
+leyenda [shape=plaintext, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="white" COLOR="#E8892B" BORDER="3"><FONT POINT-SIZE="10">Borde naranja: nuevo o modificado en AG-10</FONT></TD></TR></TABLE>>];
+tur -> web [label="Busca tours, reserva y paga\n[HTTPS]"];
+ age -> por [label="Publica tours y\nregistra reservas [HTTPS]"];
+ adm -> por [label="Aprueba agencias [HTTPS]"];
+web -> api [label="Reservas y pagos\n[JSON/HTTPS]"];
+ por -> api [label="Sincroniza\n[JSON/HTTPS]"];
+api -> bd [label="Guarda reserva y tarea en\nuna transacción [JDBC]", color="#BA750D", fontcolor="#BA750D", penwidth=1.8];
+wor -> bd [label="Lee tareas y actualiza\nreservas [JDBC]", color="#BA750D", fontcolor="#BA750D", penwidth=1.8];
+api -> pas [label="Cobra (timeout 5 s)\n[HTTPS]", color="#BA750D", fontcolor="#BA750D", penwidth=1.8];
+wor -> pas [label="Reintenta el cobro\n[HTTPS]", color="#BA750D", fontcolor="#BA750D", penwidth=1.8];
+wor -> wha [label="Envía confirmaciones\ndiferidas [HTTPS]", color="#BA750D", fontcolor="#BA750D", penwidth=1.8];
+api -> wha [label="Envía itinerarios\n[HTTPS]"];
+ api -> aut [label="Valida el boleto\n[HTTPS]"];
+leyenda -> aut [style=invis];
+}

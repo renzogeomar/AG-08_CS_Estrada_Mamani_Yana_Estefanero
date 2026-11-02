@@ -1,0 +1,8 @@
+digraph G { rankdir=TB; bgcolor=white; fontname="Arial"; pad=0.2; nodesep=0.45; ranksep=0.7; splines=true; nodesep=0.5; ranksep=0.6; node [fontname="Arial", fontsize=12]; edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="#333333", style=dashed, arrowsize=0.8]; edge [style=solid, color="#444444"];
+api [label=<<B>API</B><BR/><FONT POINT-SIZE="10">ReservarTour + timeout 5 s</FONT>>, shape=box, style="rounded,filled", fillcolor="#E3EDF5", color="#7F7F7F", penwidth=1.2, margin="0.15,0.1"];
+pas [label=<<B>Pasarela</B><BR/><FONT POINT-SIZE="10">externa</FONT>>, shape=box, style="rounded,filled", fillcolor="#EDEDED", color="#7F7F7F", penwidth=1.2, margin="0.15,0.1"];
+bd [label=<<B>PostgreSQL</B><BR/><FONT POINT-SIZE="10">reserva PENDIENTE_PAGO</FONT>>, shape=box, style="rounded,filled", fillcolor="#E3F1EA", color="#7F7F7F", penwidth=1.2, margin="0.15,0.1"];
+mq [label=<<B>Broker de mensajes</B><BR/><FONT POINT-SIZE="10">RabbitMQ/SQS gestionado<BR/>cola + cola de errores (DLQ)</FONT>>, shape=box, style="rounded,filled", fillcolor="#FBEFD9", color="#BA750D", penwidth=2.5, margin="0.15,0.1"];
+con [label=<<B>Consumidor de pagos</B><BR/><FONT POINT-SIZE="10">reintenta con la cola</FONT>>, shape=box, style="rounded,filled", fillcolor="#FBEFD9", color="#BA750D", penwidth=2.5, margin="0.15,0.1"];
+api -> pas [label="1. cobra"]; api -> bd [label="2a. guarda"]; api -> mq [label="2b. publica PagoPendiente\n(segunda escritura)", color="#B22222", fontcolor="#B22222"]; mq -> con [label="3. entrega"]; con -> pas [label="4. reintenta"]; con -> bd [label="5. confirma"];
+}

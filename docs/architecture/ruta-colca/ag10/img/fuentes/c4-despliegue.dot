@@ -1,0 +1,21 @@
+digraph G { rankdir=LR; bgcolor=white; fontname="Arial"; pad=0.2; nodesep=0.45; ranksep=0.7; splines=true; node [fontname="Arial", fontsize=12]; edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="#333333", style=dashed, arrowsize=0.8]; compound=true; ranksep=0.9;
+subgraph cluster_cloud { label="Proveedor cloud · región sa-east-1"; fontname="Arial"; fontsize=13; color="#7F7F7F"; style=rounded; margin=20;
+lb [label=<<B>Balanceador de carga</B><BR/><FONT POINT-SIZE="9">[Load balancer gestionado]</FONT><BR/><FONT POINT-SIZE="10">Termina TLS y reparte<BR/>el tráfico HTTPS.</FONT>>, shape=box, style="rounded,filled", fillcolor="white", color="#7F7F7F", margin="0.18,0.12"];
+subgraph cluster_vm1 { label="VM Ubuntu 24.04 · Docker  (instancia 1 de 2)"; fontname="Arial"; fontsize=11; color="#0E7D73"; style=rounded; margin=14;
+api1 [label=<<B>API</B><BR/><FONT POINT-SIZE="9">[contenedor Docker]</FONT><BR/><FONT POINT-SIZE="10">Perfil web.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+wor1 [label=<<B>Procesador de tareas</B><BR/><FONT POINT-SIZE="9">[contenedor Docker]</FONT><BR/><FONT POINT-SIZE="10">Perfil worker (misma<BR/>imagen).</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+}
+subgraph cluster_vm2 { label="VM Ubuntu 24.04 · Docker  (instancia 2 de 2)"; fontname="Arial"; fontsize=11; color="#0E7D73"; style=rounded; margin=14;
+api2 [label=<<B>API</B><BR/><FONT POINT-SIZE="9">[contenedor Docker]</FONT><BR/><FONT POINT-SIZE="10">Perfil web.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+wor2 [label=<<B>Procesador de tareas</B><BR/><FONT POINT-SIZE="9">[contenedor Docker]</FONT><BR/><FONT POINT-SIZE="10">Perfil worker (misma<BR/>imagen).</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+}
+subgraph cluster_bd { label="BD gestionada · PostgreSQL 16"; fontname="Arial"; fontsize=11; color="#0E7D73"; style=rounded; margin=14;
+pri [label=<<B>Base de datos (primaria)</B><BR/><FONT POINT-SIZE="9">[PostgreSQL 16]</FONT><BR/><FONT POINT-SIZE="10">Reservas y outbox.</FONT>>, shape=cylinder, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+rep [label=<<B>Réplica</B><BR/><FONT POINT-SIZE="9">[PostgreSQL 16]</FONT><BR/><FONT POINT-SIZE="10">Lecturas.</FONT>>, shape=cylinder, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+}
+}
+leyenda [shape=plaintext, label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="white" COLOR="#E8892B" BORDER="3"><FONT POINT-SIZE="10">Borde naranja: nuevo o modificado en AG-10</FONT></TD></TR></TABLE>>];
+lb -> api1 [label="HTTPS"]; lb -> api2 [label="HTTPS"];
+api1 -> pri [label="JDBC"]; api2 -> pri [label="JDBC"]; wor1 -> pri [label="JDBC", color="#BA750D"]; wor2 -> pri [label="JDBC\nSKIP LOCKED", color="#BA750D", fontcolor="#BA750D"];
+pri -> rep [label="replicación", arrowhead=none];
+}
