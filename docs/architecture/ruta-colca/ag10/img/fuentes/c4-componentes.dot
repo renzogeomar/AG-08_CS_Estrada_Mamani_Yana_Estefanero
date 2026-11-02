@@ -1,0 +1,19 @@
+digraph G { rankdir=TB; bgcolor=white; fontname="Arial"; pad=0.2; nodesep=0.45; ranksep=0.7; splines=true; node [fontname="Arial", fontsize=12]; edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="#333333", style=dashed, arrowsize=0.8];
+web [label=<<B>Web del turista</B><BR/><FONT POINT-SIZE="9">[React (SPA)]</FONT><BR/><FONT POINT-SIZE="10">Catálogo de tours, reserva y<BR/>pago.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+por [label=<<B>Portal de agencias</B><BR/><FONT POINT-SIZE="9">[React (PWA)]</FONT><BR/><FONT POINT-SIZE="10">Publica tours y registra<BR/>reservas.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+subgraph cluster_api { label="API · Java 21, Spring Boot"; fontname="Arial"; fontsize=13; color="#0E7D73"; style=rounded; margin=18;
+con [label=<<B>ReservasController</B><BR/><FONT POINT-SIZE="9">[Spring MVC]</FONT><BR/><FONT POINT-SIZE="10">Recibe POST /reservas y responde<BR/>201 (confirmada) o 202 (pago en<BR/>proceso).</FONT>>, shape=box, style="rounded,filled" , fillcolor="#758F3A", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+res [label=<<B>ReservarTour</B><BR/><FONT POINT-SIZE="9">[Java (núcleo hexagonal)]</FONT><BR/><FONT POINT-SIZE="10">Caso de uso: crea la reserva,<BR/>cobra y, si la pasarela falla,<BR/>la deja pendiente.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#758F3A", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+ada [label=<<B>AdaptadorPasarela</B><BR/><FONT POINT-SIZE="9">[Resilience4j]</FONT><BR/><FONT POINT-SIZE="10">Implementa el puerto<BR/>PasarelaPago: timeout 5 s,<BR/>circuit breaker y clave de<BR/>idempotencia.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#758F3A", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+out [label=<<B>RepositorioOutbox</B><BR/><FONT POINT-SIZE="9">[Spring Data JPA]</FONT><BR/><FONT POINT-SIZE="10">Guarda la reserva y la tarea de<BR/>cobro en una sola transacción.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#758F3A", fontcolor=white, color="#E8892B", penwidth=4, margin="0.18,0.12"];
+}
+bd [label=<<B>Base de datos</B><BR/><FONT POINT-SIZE="9">[PostgreSQL 16]</FONT><BR/><FONT POINT-SIZE="10">Reservas, pagos y tareas<BR/>pendientes.</FONT>>, shape=cylinder, style="rounded,filled" , fillcolor="#0E7D73", fontcolor=white, color="#0E7D73", penwidth=1.2, margin="0.18,0.12"];
+pas [label=<<B>Pasarela de pagos</B><BR/><FONT POINT-SIZE="9">[Sistema externo]</FONT><BR/><FONT POINT-SIZE="10">Procesa pagos con tarjeta y<BR/>billetera móvil.</FONT>>, shape=box, style="rounded,filled" , fillcolor="#8C8C8C", fontcolor=white, color="#8C8C8C", penwidth=1.2, margin="0.18,0.12"];
+web -> con [label="[JSON/HTTPS]"];
+ por -> con [label="[JSON/HTTPS]"];
+ con -> res [label="Invoca"];
+res -> ada [label="Cobra con"];
+ res -> out [label="Guarda la reserva\npendiente con"];
+ada -> pas [label="Intenta el cobro en\n[HTTPS]"];
+ out -> bd [label="Lee y escribe en\n[JDBC]"];
+}

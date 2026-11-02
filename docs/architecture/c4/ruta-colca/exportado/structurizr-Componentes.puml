@@ -1,0 +1,118 @@
+@startuml
+title <size:24>Component View: RutaColca - API</size>\n<size:24>Componentes de la API (hexagonal) que participan en el cobro de una reserva.</size>
+
+set separator none
+top to bottom direction
+skinparam ranksep 60
+skinparam nodesep 30
+hide stereotype
+
+<style>
+  root {
+    BackgroundColor: #ffffff;
+    FontColor: #444444;
+  }
+  // Element,Component,AG-10
+  .Element-RWxlbWVudCxDb21wb25lbnQsQUctMTA= {
+    BackgroundColor: #758f3a;
+    LineColor: #e8892b;
+    LineStyle: 0;
+    LineThickness: 6;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Element,Container,Database,AG-10
+  .Element-RWxlbWVudCxDb250YWluZXIsRGF0YWJhc2UsQUctMTA= {
+    BackgroundColor: #0e7d73;
+    LineColor: #e8892b;
+    LineStyle: 0;
+    LineThickness: 6;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Element,Container,Web
+  .Element-RWxlbWVudCxDb250YWluZXIsV2Vi {
+    BackgroundColor: #0e7d73;
+    LineColor: #095750;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Element,Software System,Externo
+  .Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sRXh0ZXJubw== {
+    BackgroundColor: #8c8c8c;
+    LineColor: #626262;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Relationship
+  .Relationship-UmVsYXRpb25zaGlw {
+    LineThickness: 2;
+    LineStyle: 10-10;
+    LineColor: #444444;
+    FontColor: #444444;
+    FontSize: 24;
+  }
+  // API
+  .Boundary-QVBJ {
+    BackgroundColor: #ffffff;
+    LineColor: #e8892b;
+    LineStyle: 0;
+    LineThickness: 6;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+  }
+  // RutaColca
+  .Boundary-UnV0YUNvbGNh {
+    BackgroundColor: #ffffff;
+    LineColor: #124161;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+  }
+</style>
+
+rectangle "==Pasarela de pagos\n<size:16>[Software System]</size>\n\nProcesa pagos con tarjeta y billetera móvil." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sRXh0ZXJubw==>> as Pasareladepagos
+
+rectangle "RutaColca\n<size:16>[Software System]</size>" <<Boundary-UnV0YUNvbGNh>> {
+  rectangle "API\n<size:16>[Container: Java 21, Spring Boot]</size>" <<Boundary-QVBJ>> {
+    rectangle "==AdaptadorPasarela\n<size:16>[Component: Resilience4j]</size>\n\nImplementa el puerto PasarelaPago con timeout de 5 s, circuit breaker y clave de idempotencia." <<Element-RWxlbWVudCxDb21wb25lbnQsQUctMTA=>> as RutaColca.API.AdaptadorPasarela
+    rectangle "==RepositorioOutbox\n<size:16>[Component: Spring Data JPA]</size>\n\nGuarda la reserva y la tarea de cobro pendiente en una sola transacción." <<Element-RWxlbWVudCxDb21wb25lbnQsQUctMTA=>> as RutaColca.API.RepositorioOutbox
+    rectangle "==ReservasController\n<size:16>[Component: Spring MVC]</size>\n\nRecibe POST /reservas y responde 201 (confirmada) o 202 (pago en proceso)." <<Element-RWxlbWVudCxDb21wb25lbnQsQUctMTA=>> as RutaColca.API.ReservasController
+    rectangle "==ReservarTour\n<size:16>[Component: Java (núcleo hexagonal)]</size>\n\nCaso de uso: crea la reserva, cobra y, si la pasarela falla, la deja en PENDIENTE_PAGO." <<Element-RWxlbWVudCxDb21wb25lbnQsQUctMTA=>> as RutaColca.API.ReservarTour
+  }
+
+  database "==Base de datos\n<size:16>[Container: PostgreSQL 16]</size>\n\nAgencias, tours, salidas, reservas, pagos y tareas pendientes (outbox)." <<Element-RWxlbWVudCxDb250YWluZXIsRGF0YWJhc2UsQUctMTA=>> as RutaColca.Basededatos
+  rectangle "==Web del turista\n<size:16>[Container: React (SPA)]</size>\n\nCatálogo de tours, reserva y pago." <<Element-RWxlbWVudCxDb250YWluZXIsV2Vi>> as RutaColca.Webdelturista
+  rectangle "==Portal de agencias\n<size:16>[Container: React (PWA) + Service Worker]</size>\n\nPublica tours, registra reservas presenciales y asigna guías; funciona sin conexión." <<Element-RWxlbWVudCxDb250YWluZXIsV2Vi>> as RutaColca.Portaldeagencias
+}
+
+RutaColca.Webdelturista --> RutaColca.API.ReservasController <<Relationship-UmVsYXRpb25zaGlw>> : "Envía reservas y pagos a\n<size:16>[JSON/HTTPS]</size>"
+RutaColca.Portaldeagencias --> RutaColca.API.ReservasController <<Relationship-UmVsYXRpb25zaGlw>> : "Sincroniza tours y reservas con\n<size:16>[JSON/HTTPS]</size>"
+RutaColca.API.ReservasController --> RutaColca.API.ReservarTour <<Relationship-UmVsYXRpb25zaGlw>> : "Invoca"
+RutaColca.API.ReservarTour --> RutaColca.API.AdaptadorPasarela <<Relationship-UmVsYXRpb25zaGlw>> : "Cobra con"
+RutaColca.API.ReservarTour --> RutaColca.API.RepositorioOutbox <<Relationship-UmVsYXRpb25zaGlw>> : "Guarda la reserva pendiente y su tarea con"
+RutaColca.API.AdaptadorPasarela --> Pasareladepagos <<Relationship-UmVsYXRpb25zaGlw>> : "Intenta el cobro en\n<size:16>[HTTPS]</size>"
+RutaColca.API.RepositorioOutbox --> RutaColca.Basededatos <<Relationship-UmVsYXRpb25zaGlw>> : "Lee y escribe en\n<size:16>[JDBC]</size>"
+
+@enduml

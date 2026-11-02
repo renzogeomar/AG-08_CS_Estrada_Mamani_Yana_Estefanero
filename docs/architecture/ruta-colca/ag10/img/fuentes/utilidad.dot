@@ -1,0 +1,23 @@
+digraph G { rankdir=LR; bgcolor=white; fontname="Arial"; pad=0.2; nodesep=0.45; ranksep=0.7; splines=true; nodesep=0.25; ranksep=0.5; node [fontname="Arial", fontsize=12]; edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="#333333", style=dashed, arrowsize=0.8]; edge [arrowhead=none, style=solid, color="#7F7F7F", penwidth=1.2];
+u [label=<<B>Utilidad de<BR/>RutaColca</B>>, shape=box, style="rounded,filled", fillcolor="#800000", color="#800000", fontcolor=white, fontsize=14];
+r [label="Rendimiento", shape=box, style="rounded,filled", fillcolor="#E3EDF5", color="#1B5E8B"];
+e1 [label="E1  (A, M)
+2000 consultas simultáneas → p95 ≤ 1,5 s", shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#BFBFBF", penwidth=1.2, fontsize=11];
+u -> r -> e1;
+d [label="Disponibilidad", shape=box, style="rounded,filled", fillcolor="#E3EDF5", color="#1B5E8B"];
+e2 [label="E2  (A, A)
+Pasarela caída 15 min → 0 reservas pagadas perdidas", shape=box, style="rounded,filled", fillcolor="#FBEFD9", color="#BA750D", penwidth=2.5, fontsize=11];
+u -> d -> e2;
+s [label="Seguridad", shape=box, style="rounded,filled", fillcolor="#E3EDF5", color="#1B5E8B"];
+e3 [label="E3  (A, B)
+Tour de otra agencia → 100 % bloqueado y auditado", shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#BFBFBF", penwidth=1.2, fontsize=11];
+u -> s -> e3;
+m [label="Modificabilidad", shape=box, style="rounded,filled", fillcolor="#E3EDF5", color="#1B5E8B"];
+e4 [label="E4  (M, B)
+Aceptar PayPal → ≤ 3 días-persona, 0 cambios en el dominio", shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#BFBFBF", penwidth=1.2, fontsize=11];
+u -> m -> e4;
+i [label="Interoperabilidad", shape=box, style="rounded,filled", fillcolor="#E3EDF5", color="#1B5E8B"];
+e5 [label="E5  (A, M)
+AUTOCOLCA caído → validar ≤ 2 h, 0 cobros inválidos", shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#BFBFBF", penwidth=1.2, fontsize=11];
+u -> i -> e5;
+}

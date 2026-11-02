@@ -1,0 +1,89 @@
+@startuml
+title <size:24>Deployment View: RutaColca - Produccion</size>\n<size:24>Despliegue de RutaColca en temporada alta: el procesador de tareas comparte las VM de la API.</size>
+
+set separator none
+left to right direction
+skinparam ranksep 60
+skinparam nodesep 30
+hide stereotype
+
+<style>
+  root {
+    BackgroundColor: #ffffff;
+    FontColor: #444444;
+  }
+  // Element,Container,AG-10
+  .Element-RWxlbWVudCxDb250YWluZXIsQUctMTA= {
+    BackgroundColor: #0e7d73;
+    LineColor: #e8892b;
+    LineStyle: 0;
+    LineThickness: 6;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Element,Container,Database,AG-10
+  .Element-RWxlbWVudCxDb250YWluZXIsRGF0YWJhc2UsQUctMTA= {
+    BackgroundColor: #0e7d73;
+    LineColor: #e8892b;
+    LineStyle: 0;
+    LineThickness: 6;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Element,Infrastructure Node
+  .Element-RWxlbWVudCxJbmZyYXN0cnVjdHVyZSBOb2Rl {
+    BackgroundColor: #ffffff;
+    LineColor: #b2b2b2;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #262626;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Relationship
+  .Relationship-UmVsYXRpb25zaGlw {
+    LineThickness: 2;
+    LineStyle: 10-10;
+    LineColor: #444444;
+    FontColor: #444444;
+    FontSize: 24;
+  }
+  // Element
+  .DeploymentNode-RWxlbWVudA== {
+    BackgroundColor: #ffffff;
+    LineColor: #444444;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #444444;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+  }
+</style>
+
+rectangle "Proveedor cloud\n<size:16>[Deployment Node: Región sa-east-1]</size>" <<DeploymentNode-RWxlbWVudA==>> as Produccion.Proveedorcloud {
+  rectangle "==Balanceador de carga\n<size:16>[Infrastructure Node: Load balancer gestionado]</size>\n\nTermina TLS y reparte el tráfico HTTPS." <<Element-RWxlbWVudCxJbmZyYXN0cnVjdHVyZSBOb2Rl>> as Produccion.Proveedorcloud.Balanceadordecarga
+  rectangle "VM Ubuntu 24.04 (x2)\n<size:16>[Deployment Node: Docker]</size>" <<DeploymentNode-RWxlbWVudA==>> as Produccion.Proveedorcloud.VMUbuntu2404 {
+    rectangle "==API\n<size:16>[Container: Java 21, Spring Boot]</size>\n\nReglas de negocio de tours, reservas, pagos y sincronización. Monolito modular con arquitectura hexagonal (ADR-001)." <<Element-RWxlbWVudCxDb250YWluZXIsQUctMTA=>> as Produccion.Proveedorcloud.VMUbuntu2404.API_1
+    rectangle "==Procesador de tareas\n<size:16>[Container: Java 21, Spring Boot (perfil worker, @Scheduled)]</size>\n\nReintenta los cobros pendientes con espera exponencial y envía las confirmaciones diferidas." <<Element-RWxlbWVudCxDb250YWluZXIsQUctMTA=>> as Produccion.Proveedorcloud.VMUbuntu2404.Procesadordetareas_1
+  }
+
+  rectangle "BD gestionada\n<size:16>[Deployment Node: PostgreSQL 16 (primaria + réplica)]</size>" <<DeploymentNode-RWxlbWVudA==>> as Produccion.Proveedorcloud.BDgestionada {
+    database "==Base de datos\n<size:16>[Container: PostgreSQL 16]</size>\n\nAgencias, tours, salidas, reservas, pagos y tareas pendientes (outbox)." <<Element-RWxlbWVudCxDb250YWluZXIsRGF0YWJhc2UsQUctMTA=>> as Produccion.Proveedorcloud.BDgestionada.Basededatos_1
+  }
+
+}
+
+Produccion.Proveedorcloud.VMUbuntu2404.API_1 --> Produccion.Proveedorcloud.BDgestionada.Basededatos_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Lee y escribe en\n<size:16>[JDBC]</size>"
+Produccion.Proveedorcloud.VMUbuntu2404.Procesadordetareas_1 --> Produccion.Proveedorcloud.BDgestionada.Basededatos_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Lee tareas pendientes y actualiza reservas en\n<size:16>[JDBC]</size>"
+Produccion.Proveedorcloud.Balanceadordecarga --> Produccion.Proveedorcloud.VMUbuntu2404.API_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Reenvía las peticiones a\n<size:16>[HTTPS]</size>"
+
+@enduml
